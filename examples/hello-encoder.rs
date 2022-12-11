@@ -1,4 +1,3 @@
-use std::cell::RefCell;
 use std::sync::Mutex;
 use std::thread;
 use std::time::Duration;
@@ -20,7 +19,7 @@ struct RotaryEncoderState {
     queue_producer: Producer<'static, Direction, 32>,
 }
 
-static ROTARY_ENCODER: Mutex<RefCell<Option<RotaryEncoderState>>> = Mutex::new(RefCell::new(None));
+static ROTARY_ENCODER: Mutex<Option<RotaryEncoderState>> = Mutex::new(None);
 
 fn main() -> anyhow::Result<()> {
     esp_idf_sys::link_patches();
@@ -46,7 +45,6 @@ fn main() -> anyhow::Result<()> {
     ROTARY_ENCODER
         .lock()
         .unwrap()
-        .borrow_mut()
         .replace(rotary_encoder_state);
 
     // Compute timer divider to fire at 9500 Hz
@@ -83,8 +81,7 @@ fn main() -> anyhow::Result<()> {
 }
 
 fn interrupt() {
-    let rotary_encoder_state = ROTARY_ENCODER.lock().unwrap();
-    let mut rotary_encoder_state = rotary_encoder_state.borrow_mut();
+    let mut rotary_encoder_state = ROTARY_ENCODER.lock().unwrap();
     let rotary_encoder_state = rotary_encoder_state.as_mut().unwrap();
 
     rotary_encoder_state.encoder.update();
