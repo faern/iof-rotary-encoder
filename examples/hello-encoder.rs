@@ -6,7 +6,6 @@ use esp_idf_hal::gpio::{Gpio18, Gpio19, Input, PinDriver, Pull};
 use esp_idf_hal::peripherals::Peripherals;
 use esp_idf_hal::timer::config::Config;
 use esp_idf_hal::timer::TimerDriver;
-use esp_idf_sys::{timer_autoreload_t_TIMER_AUTORELOAD_EN, timer_set_auto_reload};
 use heapless::spsc::{Producer, Queue};
 use rotary_encoder_embedded::{standard::StandardMode, Direction, RotaryEncoder};
 
@@ -56,15 +55,9 @@ fn main() -> anyhow::Result<()> {
     let timer_config = Config {
         divider: timer_divider,
         xtal: false,
+        auto_reload: true,
     };
     let mut timer = TimerDriver::new(peripherals.timer00, &timer_config)?;
-    unsafe {
-        timer_set_auto_reload(
-            timer.group(),
-            timer.index(),
-            timer_autoreload_t_TIMER_AUTORELOAD_EN,
-        )
-    };
     timer.set_counter(0)?;
     timer.set_alarm(10)?;
     timer.enable_alarm(true)?;
